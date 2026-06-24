@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Private Credit Research Assistant</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f7f7f5; --bg3: #f0efe9;
+    --text: #1a1a1a; --text2: #555; --text3: #999;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.2);
+    --green-bg: #e1f5ee; --green: #0f6e56; --green-mid: #1d9e75; --green-border: #9fe1cb;
+    --red: #a32d2d; --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #333330;
+      --text: #f0efe9; --text2: #aaa; --text3: #666;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --green-bg: #04342c; --green: #9fe1cb; --green-mid: #5dcaa5; --green-border: #0f6e56;
+      --red: #f09595;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+  .container { max-width: 760px; margin: 0 auto; }
+  header { margin-bottom: 2rem; }
+  header h1 { font-size: 22px; font-weight: 500; }
+  header p { font-size: 14px; color: var(--text2); margin-top: 6px; line-height: 1.6; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 10px; border-radius: 20px; background: var(--green-bg); color: var(--green); margin-left: 8px; vertical-align: middle; font-weight: 500; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+  .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 10px; }
+  .tabs { display: flex; border: 0.5px solid var(--border2); border-radius: var(--radius); overflow: hidden; width: fit-content; margin-bottom: 14px; }
+  .tab { padding: 7px 18px; font-size: 13px; cursor: pointer; background: transparent; border: none; color: var(--text2); border-right: 0.5px solid var(--border); font-family: inherit; }
+  .tab:last-child { border-right: none; }
+  .tab.active { background: var(--bg2); color: var(--text); font-weight: 500; }
+  .tab:hover:not(.active) { background: var(--bg2); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 2.5rem 2rem; text-align: center; cursor: pointer; transition: background 0.15s; }
+  .upload-zone:hover, .upload-zone.drag { background: var(--bg2); }
+  .upload-zone svg { width: 36px; height: 36px; stroke: var(--text3); margin-bottom: 10px; }
+  .upload-zone p { font-size: 14px; color: var(--text2); margin-bottom: 4px; }
+  .upload-zone span { font-size: 12px; color: var(--text3); }
+  #fileInput { display: none; }
+  textarea { width: 100%; min-height: 140px; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 12px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--bg); resize: vertical; line-height: 1.6; }
+  textarea:focus { outline: none; border-color: var(--green-mid); }
+  .doc-meta { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+  .doc-stat { font-size: 12px; color: var(--text3); }
+  .doc-stat b { color: var(--text2); font-weight: 500; }
+  .preset-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .preset-btn { font-size: 12px; padding: 5px 12px; border: 0.5px solid var(--border2); border-radius: 20px; background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; }
+  .preset-btn:hover { background: var(--bg2); }
+  .file-loaded { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 0.5px solid var(--green-border); border-radius: var(--radius); background: var(--green-bg); margin-top: 12px; }
+  .file-loaded svg { stroke: var(--green); flex-shrink: 0; }
+  .file-loaded p { font-size: 13px; color: var(--green); font-weight: 500; }
+  .file-loaded span { font-size: 12px; color: var(--green-mid); }
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; display: none; }
+  .progress-fill { height: 100%; background: var(--green-mid); border-radius: 2px; transition: width 0.3s; }
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
+  .suggested { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sugg-btn { font-size: 12px; padding: 6px 14px; border: 0.5px solid var(--border2); border-radius: 20px; background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; text-align: left; }
+  .sugg-btn:hover { background: var(--bg2); color: var(--text); }
+  .input-row { display: flex; gap: 8px; }
+  .q-input { flex: 1; padding: 11px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 14px; font-family: inherit; color: var(--text); background: var(--bg); }
+  .q-input:focus { outline: none; border-color: var(--green-mid); }
+  .ask-btn { padding: 11px 20px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 14px; cursor: pointer; font-family: inherit; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .ask-btn:hover { background: var(--bg2); }
+  .ask-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .answers { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+  .answer-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; background: var(--bg); }
+  .answer-q { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 10px; display: flex; gap: 6px; align-items: flex-start; }
+  .answer-q svg { flex-shrink: 0; margin-top: 1px; stroke: var(--text3); }
+  .answer-text { font-size: 14px; color: var(--text); line-height: 1.75; white-space: pre-wrap; }
+  .answer-text.loading { color: var(--text3); font-style: italic; }
+  .answer-text.error { color: var(--red); }
+  .empty-state { text-align: center; padding: 2.5rem; color: var(--text3); font-size: 14px; border: 0.5px dashed var(--border); border-radius: var(--radius-lg); }
+  .empty-state svg { width: 32px; height: 32px; stroke: var(--text3); margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+  .api-notice { font-size: 12px; color: var(--text3); margin-top: 8px; line-height: 1.5; }
+  .api-input { width: 100%; padding: 9px 12px; border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 13px; font-family: inherit; color: var(--text); background: var(--bg); letter-spacing: 0.5px; }
+  .api-input:focus { outline: none; border-color: var(--green-mid); }
+  footer { text-align: center; font-size: 12px; color: var(--text3); margin-top: 2rem; }
+  footer a { color: var(--text2); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Private Credit Research Assistant <span class="badge">RAG demo</span></h1>
+    <p>Upload a PDF or paste text from credit memos, lender reports, or bond prospectuses — then ask questions. Built with Claude API + PDF.js as a portfolio project demonstrating RAG-based document analysis for private debt workflows.</p>
+  </header>
+
+  <div class="card">
+    <div class="section-label">API key</div>
+    <input class="api-input" id="apiKey" type="password" placeholder="Enter your Anthropic API key (sk-ant-...)" />
+    <p class="api-notice">Your key is used only in your browser to call the Anthropic API directly. It is never stored or sent anywhere else. Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Document input</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('pdf')">Upload PDF</button>
+      <button class="tab" onclick="switchTab('text')">Paste text</button>
+      <button class="tab" onclick="switchTab('sample')">Sample data</button>
+    </div>
+
+    <div id="pdfPanel" class="panel active">
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDrag(event,true)" ondragleave="handleDrag(event,false)" ondrop="handleDrop(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 9 12 4 17 9"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+        <p>Click to upload a PDF, or drag and drop</p>
+        <span>Bond prospectuses · Credit memos · Lender reports · Annual reports</span>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf" onchange="handleFile(event)">
+      <div id="fileLoaded"></div>
+      <div class="progress-bar" id="progressWrap"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div id="textPanel" class="panel">
+      <textarea id="docInput" placeholder="Paste credit report, lender memo, or financial document text here..."></textarea>
+    </div>
+
+    <div id="samplePanel" class="panel">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Load a realistic private credit memo to test the tool:</p>
+      <div class="preset-btns">
+        <button class="preset-btn" onclick="loadSample('termLoan')">Senior term loan (manufacturing)</button>
+        <button class="preset-btn" onclick="loadSample('realEstate')">Real estate senior debt (Frankfurt)</button>
+        <button class="preset-btn" onclick="loadSample('infra')">Infrastructure / solar PV portfolio</button>
+      </div>
+      <div id="sampleLoaded"></div>
+    </div>
+
+    <div class="doc-meta">
+      <div class="doc-stat">Words: <b id="wordCount">0</b></div>
+      <div class="doc-stat">Chunks: <b id="chunkCount">0</b></div>
+      <div class="doc-stat">Status: <b id="docStatus">No document loaded</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Ask a question</div>
+    <div class="suggested">
+      <button class="sugg-btn" onclick="setQ('What is the leverage ratio and does it breach typical thresholds?')">Leverage ratio</button>
+      <button class="sugg-btn" onclick="setQ('What are the DSCR and interest coverage ratio?')">Coverage ratios</button>
+      <button class="sugg-btn" onclick="setQ('Summarise the key credit risks.')">Key risks</button>
+      <button class="sugg-btn" onclick="setQ('What is the loan structure and use of proceeds?')">Loan structure</button>
+      <button class="sugg-btn" onclick="setQ('Extract all financial metrics and present them clearly.')">All metrics</button>
+      <button class="sugg-btn" onclick="setQ('What are the covenant terms and any breach triggers?')">Covenants</button>
+    </div>
+    <div class="input-row">
+      <input class="q-input" id="qInput" type="text" placeholder="Ask anything about the document..." />
+      <button class="ask-btn" id="askBtn" onclick="askQuestion()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Ask
+      </button>
+    </div>
+
+    <div class="answers" id="answers">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+        Load a document above, then ask a question to get started.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built by <a href="https://github.com/geetikagupta1998" target="_blank">geetikagupta1998</a> · 
+    RAG demo using <a href="https://www.anthropic.com" target="_blank">Claude API</a> + PDF.js · 
+    <a href="https://github.com/geetikagupta1998/private-credit-rag" target="_blank">View on GitHub</a>
+  </footer>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let docText = '';
+
+const SAMPLES = {
+  termLoan: `Credit Memo — Senior Secured Term Loan B\n\nBorrower: Nexus Industrial Holdings GmbH\nSector: Industrial Manufacturing (Automotive Parts)\nTransaction: EUR 120M Senior Secured Term Loan B (6-year tenor)\n\nFinancial Summary:\nRevenue: EUR 210M. EBITDA: EUR 38M. EBITDA Margin: 18.1%.\nTotal Debt: EUR 152M. Net Debt: EUR 144M.\nLeverage (Net Debt / EBITDA): 3.8x.\nInterest Coverage Ratio: 4.1x. DSCR: 1.6x.\nCapEx: EUR 12M. Free Cash Flow: EUR 19M.\n\nLoan Structure:\nUse of proceeds: EUR 85M refinancing, EUR 35M acquisition financing.\nPricing: EURIBOR + 450bps. PIK toggle available years 3-4.\n\nCovenants:\nLeverage covenant: Net Debt/EBITDA ≤ 5.0x (quarterly).\nInterest coverage: EBITDA/Interest ≥ 3.0x.\nCapEx cap: EUR 18M per annum.\nChange of control at 50% equity transfer triggers mandatory prepayment.\n\nCredit Risks:\n1. Customer concentration: Top 3 OEMs = 70% revenue — EV transition risk.\n2. FX exposure: ~35% of costs in PLN/CZK.\n3. Cyclicality: margins compressed -22% in 2020.\n4. Labour: Wage inflation in Eastern Europe 8-10% annually.\n5. Refinancing risk: EUR 45M subordinated notes maturing in 18 months.\n\nRecommendation: Approve. Leverage within acceptable range at 3.8x. Strong FCF supports debt service.`,
+  realEstate: `Private Debt — Real Estate Investment Memo\n\nAsset: Stadtmitte Office Complex, Frankfurt am Main\nBorrower: Stadtmitte PropCo GmbH (SPV)\nLoan Amount: EUR 55M. LTV: 62%. Valuation: EUR 88.7M (CBRE, March 2024).\n\nIncome Metrics:\nGross Rental Income: EUR 5.8M p.a. NOI: EUR 5.1M p.a.\nNet Initial Yield: 5.75%. Debt Yield: 9.3%. ICR: 1.59x. DSCR: 1.45x.\nPrimary tenant: Deutsche Bundesbank (37% income, lease expiry 2030).\nWAULT: 5.2 years. Occupancy: 94%.\n\nStructure:\nTenor: 5 years. Amortisation: 1% p.a.\nCash trap: triggered if ICR < 1.30x. LTV covenant: breach at >70%.\n\nRisk Factors:\nInterest rate hedged; cap expires year 3.\nTenant concentration: Bundesbank lease critical.\nFrankfurt office vacancy: 8.2%. BREEAM Excellent certified.`,
+  infra: `Infrastructure Private Debt — Solar PV Portfolio\n\nProject: SolarEdge Renewables GmbH. Capacity: 280 MW across 14 assets in Germany.\nSenior Debt: EUR 165M. Tenor: 18 years. Pricing: Fixed 4.85%.\nGearing: 72% debt / 28% equity.\nDSCR (P50): 1.41x. DSCR (P90): 1.22x. LLCR: 1.38x. PLCR: 1.45x.\n\nRevenue: Fully contracted PPAs. Weighted average PPA tenor: 14.2 years.\nOfftakers: two investment-grade German utilities + one BBB- industrial.\nMerchant exposure: <8% over loan life.\n\nReserve Accounts:\nDSRA: 6 months debt service (EUR 7.2M).\nDistribution lock-up triggered if DSCR < 1.15x trailing 12 months.\n\nRisks:\nP90 scenario DSCR: 1.22x — thin under stress.\nGerman EEG reform 2026 — current assets grandfathered.\nMerchant tail risk post-PPA (year 15+).`
+};
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['pdf','text','sample'][i] === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(tab + 'Panel').classList.add('active');
+}
+
+function handleDrag(e, over) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.toggle('drag', over);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') processPDF(file);
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (file) processPDF(file);
+}
+
+async function processPDF(file) {
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  progressWrap.style.display = 'block';
+  progressFill.style.width = '10%';
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    progressFill.style.width = '30%';
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    progressFill.style.width = '50%';
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(item => item.str).join(' ') + '\n';
+      progressFill.style.width = (50 + (i / pdf.numPages) * 45) + '%';
+    }
+    docText = fullText.trim();
+    progressFill.style.width = '100%';
+    setTimeout(() => { progressWrap.style.display = 'none'; }, 500);
+    document.getElementById('fileLoaded').innerHTML = `<div class="file-loaded"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p>${file.name}</p><span>${pdf.numPages} pages · ${docText.split(/\s+/).length.toLocaleString()} words extracted</span></div></div>`;
+    updateMeta();
+  } catch (err) {
+    progressWrap.style.display = 'none';
+    document.getElementById('fileLoaded').innerHTML = `<p style="color:var(--red);font-size:13px;margin-top:8px;">Failed to read PDF: ${err.message}</p>`;
+  }
+}
+
+function loadSample(type) {
+  docText = SAMPLES[type];
+  const names = { termLoan: 'Senior Term Loan B — Nexus Industrial GmbH', realEstate: 'Real Estate Debt — Stadtmitte Frankfurt', infra: 'Infrastructure Debt — SolarEdge 280MW' };
+  document.getElementById('sampleLoaded').innerHTML = `<div class="file-loaded" style="margin-top:12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p>${names[type]}</p><span>${docText.split(/\s+/).length} words loaded</span></div></div>`;
+  updateMeta();
+}
+
+document.getElementById('docInput').addEventListener('input', () => {
+  docText = document.getElementById('docInput').value.trim();
+  updateMeta();
+});
+
+document.getElementById('qInput').addEventListener('keydown', e => { if (e.key === 'Enter') askQuestion(); });
+
+function chunkText(text, size = 500, overlap = 60) {
+  const words = text.split(/\s+/);
+  const chunks = [];
+  let i = 0;
+  while (i < words.length) { chunks.push(words.slice(i, i + size).join(' ')); i += size - overlap; }
+  return chunks;
+}
+
+function updateMeta() {
+  const words = docText ? docText.split(/\s+/).filter(Boolean).length : 0;
+  const chunks = docText ? chunkText(docText).length : 0;
+  document.getElementById('wordCount').textContent = words.toLocaleString();
+  document.getElementById('chunkCount').textContent = chunks;
+  document.getElementById('docStatus').textContent = words > 0 ? 'Ready ✓' : 'No document loaded';
+}
+
+function setQ(q) { document.getElementById('qInput').value = q; document.getElementById('qInput').focus(); }
+
+async function askQuestion() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { alert('Please enter your Anthropic API key first.'); return; }
+  if (!docText) { alert('Please load a document first.'); return; }
+  const question = document.getElementById('qInput').value.trim();
+  if (!question) { alert('Please enter a question.'); return; }
+
+  const btn = document.getElementById('askBtn');
+  btn.disabled = true;
+  btn.textContent = 'Thinking...';
+
+  const context = chunkText(docText).join('\n\n---\n\n');
+  const answersEl = document.getElementById('answers');
+  const empty = answersEl.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const card = document.createElement('div');
+  card.className = 'answer-card';
+  card.innerHTML = `<div class="answer-q"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>${question}</div><div class="answer-text loading" id="st">Analysing document...</div>`;
+  answersEl.prepend(card);
+  const st = card.querySelector('#st');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: 'You are a private credit analyst assistant. Answer questions strictly based on the provided document. If information is not in the document, say so clearly. Be precise with numbers. Format responses clearly with line breaks. When listing metrics, use a structured layout.',
+        messages: [{ role: 'user', content: `Document:\n\n${context}\n\n---\n\nQuestion: ${question}` }]
+      })
+    });
+    const data = await res.json();
+    st.classList.remove('loading');
+    if (data.error) { st.textContent = 'Error: ' + data.error.message; st.classList.add('error'); }
+    else st.textContent = data.content?.[0]?.text || 'No response received.';
+  } catch (err) {
+    st.textContent = 'Error: ' + err.message;
+    st.classList.add('error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Ask';
+  document.getElementById('qInput').value = '';
+}
+</script>
+</body>
+</html>
